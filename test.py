@@ -11,7 +11,7 @@ headers = {
     "Content-Type": "application/json;charset='utf-8'",
     "Authorization": "Basic TXV0a2luOncxZjVpUDU2"
 }
-#test
+
 # Формируем get запрос для получения всех циклов проекта
 url = f"https://jira.blogic.ru/rest/zapi/latest/cycle?projectId={projectId}&versionId=&id=&offset=&issueId=&expand="
 print(f"SEND GET REQUEST url={url}, headers: {headers}")
