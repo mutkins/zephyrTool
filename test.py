@@ -48,3 +48,4 @@ print(f"JSON IS DECODED SUCCESSFUL, [cycle,version]:{summaryCyclesList}")
 log.info(f"JSON IS DECODED SUCCESSFUL, [cycle,version]:{summaryCyclesList}")
 for cycleId, versionId in summaryCyclesList:
     print(cycleId, versionId)
+    print(cycleId, versionId)
