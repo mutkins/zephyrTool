@@ -53,7 +53,7 @@ def sendRESTRequest(reqtype, url_, headers_, body_=""):
     log.debug(f"RESPONCE_TEXT: {res.text}")
     return res
 
-
+report = []
 # Отправляем get запрос для получения всех циклов проекта
 url = f"https://jira.blogic.ru/rest/zapi/latest/cycle?projectId={projectId}&versionId=&id=&offset=&issueId=&expand="
 cyclesByProject = sendRESTRequest("GET", url, headers)
@@ -61,7 +61,8 @@ cyclesByProject = sendRESTRequest("GET", url, headers)
 # Разбираем json, ищем все циклы с именем SUMMARY
 try:
     summaryCyclesList = []
-    n = 0
+    # Перебираем циклы в проекте, nс == number of cycle
+    nc = 0
     for item in cyclesByProject.json().items():
         for childItem in item[1]:
             for finallyItem in childItem.items():
@@ -69,9 +70,10 @@ try:
                 if isinstance(finallyItem[1], dict) and finallyItem[1].get('name') == "SUMMARY":
                     # Записываем в список номер цикла и версию
                     summaryCyclesList.append([])
-                    summaryCyclesList[n].append(finallyItem[0])
-                    summaryCyclesList[n].append(finallyItem[1].get('versionId'))
-                    n = n + 1
+                    summaryCyclesList[nc].append(finallyItem[0])
+                    summaryCyclesList[nc].append(finallyItem[1].get('versionId'))
+                    summaryCyclesList[nc].append(finallyItem[1].get('versionName'))
+                    nc = nc + 1
 
 except:
     print(f"JSON_DECODE_ERROR:")
@@ -80,67 +82,90 @@ except:
 print(f"JSON_IS_DECODED_SUCCESSFUL, [cycle,version]:{summaryCyclesList}")
 log.info(f"JSON_IS_DECODED_SUCCESSFUL, [cycle,version]:{summaryCyclesList}")
 
-# Для каждого цикла SUMMARY отправляем get запрос для получения его выполнений в рамках этой версии
-for cycleId, versionId in summaryCyclesList:
+report.append(f"Найдено {len(summaryCyclesList)} циклов с именем SUMMARY [cycleId,versionId, versionName]: {summaryCyclesList}")
+
+# Теперь у нас есть список циклов SUMMARY, перебираем циклы по этому списку, nc - number of cycle
+nc = 0
+for cycleId, versionId, versionName in summaryCyclesList:
+
+    # Отправляем get запрос для получения тестов, входящих в цикл
     url = f"https://jira.blogic.ru/rest/zapi/latest/execution?issueId=&projectId=&versionId={versionId}&offset=&action=&sorter=&expand=&limit=&folderId=&limit=1000&cycleId={cycleId}"
     summaryCycle = sendRESTRequest("GET", url, headers)
 
-    # Парсим полученный JSON, разбираем каждое выполнение в SUMMARY
+    # Парсим полученный JSON
     try:
-        executionsDict = summaryCycle.json().get('executions')
+        testsDict = summaryCycle.json().get('executions')
     except:
         print(f"JSON_DECODE_ERROR:")
         log.exception(f"JSON_DECODE_ERROR:")
         sys.exit()
-    for i in executionsDict:
+
+    report.append(f"В цикле SUMMARY {summaryCyclesList[nc]} найдено {len(testsDict)} тестов")
+
+    # Перебираем тесты (выполнения), входящие в цикл, t == test, nt == number of test
+    nt = 0
+    for t in testsDict:
         try:
-            issueId = i.get('issueId')
-            executionId = i.get('id')
+            issueId = t.get('issueId')
+            executionId = t.get('id')
+            issueKey = t.get('issueKey')
         except:
             print(f"JSON_DECODE_ERROR:")
             log.exception(f"JSON_DECODE_ERROR:")
             sys.exit(1)
-        # У каждого выполнения взяли номер теста и запрашиваем все его выполнения в рамках данной версии
+
+        # У каждого теста (выполнения) взяли номер и запрашиваем все его выполнения в рамках данной версии
         url = f"https://jira.blogic.ru/rest/zapi/latest/execution?issueId={issueId}&projectId=&versionId={versionId}&offset=&action=&sorter=&expand=&limit=&folderId=&limit=1000&cycleId="
         executionsByIssueId = sendRESTRequest("GET", url, headers)
+        executionsDict = executionsByIssueId.json().get('executions')
 
-        # Разбираем каждое выполнение этого теста
-        executionsByIssueIdList = []
-        m = 0
-        for k in executionsByIssueId.json().get('executions'):
+        report.append(f"{nt + 1}. У теста {issueKey} найдено {len(executionsDict) - 1} выполнений в этой версии")
+
+        # Разбираем каждое выполнение этого теста, e == execution, ne == number of execution
+        executionsList = []
+        ne = 0
+        for e in executionsDict:
             try:
                 # Фильтруем выполнения из цикла SUMMARY (чтобы случайно не считать статус выполнения из него)
-                if str(k.get('cycleId')) != cycleId:
-                    log.info(f"Executions id: {k.get('id')}")
+                if str(e.get('cycleId')) != cycleId:
+                    log.info(f"Executions id: {e.get('id')}")
                     # Из каждого выполнения берем id, статус и дату создания, составляем из них список
-                    executionsByIssueIdList.append([])
-                    executionsByIssueIdList[m].append(k.get('id'))
-                    executionsByIssueIdList[m].append(k.get('issueId'))
-                    executionsByIssueIdList[m].append(k.get('executionStatus'))
-                    executionsByIssueIdList[m].append(k.get('createdOn'))
+                    executionsList.append([])
+                    executionsList[ne].append(e.get('id'))
+                    executionsList[ne].append(e.get('issueId'))
+                    executionsList[ne].append(e.get('executionStatus'))
+                    executionsList[ne].append(e.get('createdOn'))
                     # дату в unix переводим, чтобы сортировать потом проще было
-                    uTime = time.mktime(datetime.datetime.strptime(k.get('createdOn'),
+                    uTime = time.mktime(datetime.datetime.strptime(e.get('createdOn'),
                                                                    "%d.%m.%Y %H:%M").timetuple())
-                    executionsByIssueIdList[m].append(uTime)
-                    m = m + 1
+                    executionsList[ne].append(uTime)
+                    # report.append(f"{nt + 1}.{ne + 1}. Выполнение {executionsList[ne][0]}, Статус {executionsList[ne][2]}, Дата создания выполнения {executionsList[ne][3]}")
+                    ne = ne + 1
             except:
                 print(f"JSON_DECODE_ERROR:")
                 log.exception(f"JSON_DECODE_ERROR:")
                 sys.exit(1)
         print(
-            f"JSON_IS_DECODED_SUCCESSFUL, [executionId, issueId,executionStatus,createdOn,uTime]:{executionsByIssueIdList}")
+            f"JSON_IS_DECODED_SUCCESSFUL, [executionId, issueId,executionStatus,createdOn,uTime]:{executionsList}")
         log.info(
-            f"JSON_IS_DECODED_SUCCESSFUL, [executionId, issueId,executionStatus,createdOn,uTime]:{executionsByIssueIdList}")
+            f"JSON_IS_DECODED_SUCCESSFUL, [executionId, issueId,executionStatus,createdOn,uTime]:{executionsList}")
 
         # сортируем полученный список по unix дате по убыванию
-        executionsByIssueIdSortedList = sorted(executionsByIssueIdList, key=itemgetter(4), reverse=True)
+        executionsByIssueIdSortedList = sorted(executionsList, key=itemgetter(4), reverse=True)
+        finalExecutionId = executionsByIssueIdSortedList[0][0]
         finalExecutionStatus = executionsByIssueIdSortedList[0][2]
+        finalExecutionDate = executionsByIssueIdSortedList[0][3]
+
         log.info(
             f"Cycle = {cycleId}, versionId={versionId}, lastExecutionCreated in {executionsByIssueIdSortedList[0][3]}, lastExecutionStatus={finalExecutionStatus}")
-
+        report.append(f"Последнее выполнение - {finalExecutionId}, {finalExecutionDate}, Статус {finalExecutionStatus}")
         # Теперь мы знаем статус последнего выполнения этого теста, проставляем этот статус в это выполнение в цикле SUMMARY
         url = f"https://jira.blogic.ru/rest/zapi/latest/execution/{executionId}/execute"
         body = {
             "status": finalExecutionStatus
         }
         sendRESTRequest("PUT", url, headers, body)
+        report.append(f"В версии {versionName} в выполнении теста {issueKey} установлен статус {finalExecutionStatus}")
+        nt += 1
+
+print(report)
