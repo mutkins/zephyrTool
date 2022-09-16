@@ -73,7 +73,7 @@ def runZTool():
                         # Записываем в список номер цикла и версию
                         summaryCyclesList.append([])
                         summaryCyclesList[nc].append(finallyItem[0])
-                        summaryCyclesList[nc].append(finallyItem[1].get('versionId'))
+                        summaryCyclesList[nc].append(finallyItem[1].get('version1Id'))
                         summaryCyclesList[nc].append(finallyItem[1].get('versionName'))
                         nc = nc + 1
 

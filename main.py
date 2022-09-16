@@ -53,15 +53,15 @@ def sendRESTRequest(reqtype, url_, headers_, body_=""):
     log.debug(f"RESPONCE_TEXT: {res.text}")
     return res
 
-
 # Отправляем get запрос для получения всех циклов проекта
 url = f"https://jira.blogic.ru/rest/zapi/latest/cycle?projectId={projectId}&versionId=&id=&offset=&issueId=&expand="
 cyclesByProject = sendRESTRequest("GET", url, headers)
 
 # Разбираем json, ищем все циклы с именем SUMMARY
+
+summaryCyclesList = []
+n = 0
 try:
-    summaryCyclesList = []
-    n = 0
     for item in cyclesByProject.json().items():
         for childItem in item[1]:
             for finallyItem in childItem.items():
@@ -73,9 +73,9 @@ try:
                     summaryCyclesList[n].append(finallyItem[1].get('versionId'))
                     n = n + 1
 
-except:
-    print(f"JSON_DECODE_ERROR:")
-    log.exception(f"JSON_DECODE_ERROR:")
+except Exception as e:
+    print(f"JSON_DECODE_ERROR: {e}")
+    log.exception(f"JSON_DECODE_ERROR: {e}")
     sys.exit(1)
 print(f"JSON_IS_DECODED_SUCCESSFUL, [cycle,version]:{summaryCyclesList}")
 log.info(f"JSON_IS_DECODED_SUCCESSFUL, [cycle,version]:{summaryCyclesList}")
@@ -88,17 +88,17 @@ for cycleId, versionId in summaryCyclesList:
     # Парсим полученный JSON, разбираем каждое выполнение в SUMMARY
     try:
         executionsDict = summaryCycle.json().get('executions')
-    except:
-        print(f"JSON_DECODE_ERROR:")
-        log.exception(f"JSON_DECODE_ERROR:")
+    except Exception as e:
+        print(f"JSON_DECODE_ERROR: {e}")
+        log.exception(f"JSON_DECODE_ERROR: {e}")
         sys.exit()
     for i in executionsDict:
         try:
             issueId = i.get('issueId')
             executionId = i.get('id')
-        except:
-            print(f"JSON_DECODE_ERROR:")
-            log.exception(f"JSON_DECODE_ERROR:")
+        except Exception as e:
+            print(f"JSON_DECODE_ERROR: {e}")
+            log.exception(f"JSON_DECODE_ERROR: {e}")
             sys.exit(1)
         # У каждого выполнения взяли номер теста и запрашиваем все его выполнения в рамках данной версии
         url = f"https://jira.blogic.ru/rest/zapi/latest/execution?issueId={issueId}&projectId=&versionId={versionId}&offset=&action=&sorter=&expand=&limit=&folderId=&limit=1000&cycleId="
@@ -123,9 +123,9 @@ for cycleId, versionId in summaryCyclesList:
                                                                    "%d.%m.%Y %H:%M").timetuple())
                     executionsByIssueIdList[m].append(uTime)
                     m = m + 1
-            except:
-                print(f"JSON_DECODE_ERROR:")
-                log.exception(f"JSON_DECODE_ERROR:")
+            except Exception as e:
+                print(f"JSON_DECODE_ERROR: {e}")
+                log.exception(f"JSON_DECODE_ERROR: {e}")
                 sys.exit(1)
         print(
             f"JSON_IS_DECODED_SUCCESSFUL, [executionId, issueId,executionStatus,createdOn,uTime]:{executionsByIssueIdList}")

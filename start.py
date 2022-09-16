@@ -15,6 +15,6 @@ def index():
 @app.route('/add_message')
 def add_message():
     import myTestFile
-    return f"SUMMARY {myTestFile.runZTool()}"
-
+    # return f"SUMMARY {myTestFile.runZTool()}"
+    return render_template('summary.html', report=myTestFile.runZTool())
 
