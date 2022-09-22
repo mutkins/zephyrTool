@@ -53,6 +53,7 @@ def sendRESTRequest(reqtype, url_, headers_, body_=""):
     log.debug(f"RESPONCE_TEXT: {res.text}")
     return res
 
+
 report = []
 # Отправляем get запрос для получения всех циклов проекта
 url = f"https://jira.blogic.ru/rest/zapi/latest/cycle?projectId={projectId}&versionId=&id=&offset=&issueId=&expand="
