@@ -158,6 +158,8 @@ def runZTool():
 
             # сортируем полученный список по unix дате по убыванию
             executionsByIssueIdSortedList = sorted(executionsList, key=itemgetter(4), reverse=True)
+
+            # if executionsByIssueIdSortedList is empty (if there is no executions in the test) assign Execution Properties as None
             finalExecutionId = executionsByIssueIdSortedList[0][0] if executionsByIssueIdSortedList else None
             finalExecutionStatus = executionsByIssueIdSortedList[0][2] if executionsByIssueIdSortedList else None
             finalExecutionDate = executionsByIssueIdSortedList[0][3] if executionsByIssueIdSortedList else None
