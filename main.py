@@ -158,12 +158,12 @@ def runZTool():
 
             # сортируем полученный список по unix дате по убыванию
             executionsByIssueIdSortedList = sorted(executionsList, key=itemgetter(4), reverse=True)
-            finalExecutionId = executionsByIssueIdSortedList[0][0]
-            finalExecutionStatus = executionsByIssueIdSortedList[0][2]
-            finalExecutionDate = executionsByIssueIdSortedList[0][3]
+            finalExecutionId = executionsByIssueIdSortedList[0][0] if executionsByIssueIdSortedList else None
+            finalExecutionStatus = executionsByIssueIdSortedList[0][2] if executionsByIssueIdSortedList else None
+            finalExecutionDate = executionsByIssueIdSortedList[0][3] if executionsByIssueIdSortedList else None
 
             log.info(
-                f"Cycle = {cycleId}, versionId={versionId}, lastExecutionCreated in {executionsByIssueIdSortedList[0][3]}, lastExecutionStatus={finalExecutionStatus}")
+                f"Cycle = {cycleId}, versionId={versionId}, lastExecutionCreated in {finalExecutionDate}, lastExecutionStatus={finalExecutionStatus}")
             report.append(f"Последнее выполнение - {finalExecutionId}, {finalExecutionDate}, Статус {finalExecutionStatus}")
             # Теперь мы знаем статус последнего выполнения этого теста, проставляем этот статус в это выполнение в цикле SUMMARY
             url = f"https://jira.blogic.ru/rest/zapi/latest/execution/{executionId}/execute"
