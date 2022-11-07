@@ -7,11 +7,16 @@ import logging
 import sys
 import base64
 from dotenv import load_dotenv
+import pytz
 
 load_dotenv()
 projectId = 13781
-logging.basicConfig(filename="main.log", level=logging.DEBUG, filemode="w")
+logging.basicConfig(filename="main.log", level=logging.DEBUG, filemode="w", format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("main")
+
+lastRunningStatus = 0
+lastRunningDate = datetime.datetime.now(pytz.timezone('Asia/Yekaterinburg'))
+report = []
 
 # Вытягиваем из переменных среды логин и пароль, превращаем их в Base64 строку
 usernameAndPassString = f"{os.environ.get('USER')}:{os.environ.get('PASSWORD')}"
@@ -55,7 +60,6 @@ def sendRESTRequest(reqtype, url_, headers_, body_=""):
 
 
 def runZTool():
-    report = []
     # Отправляем get запрос для получения всех циклов проекта
     url = f"https://jira.blogic.ru/rest/zapi/latest/cycle?projectId={projectId}&versionId=&id=&offset=&issueId=&expand="
     cyclesByProject = sendRESTRequest("GET", url, headers)
@@ -169,5 +173,15 @@ def runZTool():
             sendRESTRequest("PUT", url, headers, body)
             report.append(f"В версии {versionName} в выполнении теста {issueKey} установлен статус {finalExecutionStatus}")
             nt += 1
+    log.info(f"REPORT: {report}")
+    lastRunningDate = datetime.datetime.now(pytz.timezone('Asia/Yekaterinburg'))
 
+
+
+def getLastRunningDate():
+    return lastRunningDate
+
+
+def getReport():
     return report
+

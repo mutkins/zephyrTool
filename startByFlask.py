@@ -1,20 +1,18 @@
 from flask import Flask, render_template, redirect, url_for, request
 from collections import namedtuple
 
+import main
 
 app = Flask(__name__)
 
-message = namedtuple('Message', 'text tag')
-messages = []
 
 @app.route("/", methods=['GET'])
 def index():
 
-    return render_template('index.html')
+    return render_template('index.html', lastRunningDate=main.getLastRunningDate())
 
 @app.route('/add_message')
 def add_message():
-    import main
-    # return f"SUMMARY {myTestFile.runZTool()}"
-    return render_template('summary.html', report=main.runZTool())
+    main.runZTool()
+    return render_template('summary.html', report=main.getReport())
 

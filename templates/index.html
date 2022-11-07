@@ -4,8 +4,15 @@
     <meta charset="UTF-8">
     <title>Title</title>
 </head>
+<script>
+    var time = new Date();
+    var i = document.createElement("img");
+    i.src = "/getTime?time=" + time;
+    document.getElementById("time").innerHTML = time;
+</script>
 <body>
 <h1>Утилита для сбора статистики по выполнениям Zephyr</h1>
+<h2>Дата последнего сбора: {{ lastRunningDate }}</h2>
 <form action="/add_message">
   <button>Собрать!</button>
 </form>
