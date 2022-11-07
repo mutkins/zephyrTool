@@ -1,20 +1,15 @@
-from flask import Flask, render_template, redirect, url_for, request
-from collections import namedtuple
+import main
+import schedule
+import time
+import datetime
+
+def job():
+    main.runZTool()
+    print(f"I've done {datetime.datetime.now()}")
 
 
-app = Flask(__name__)
+schedule.every(30).minutes.do(job)
 
-message = namedtuple('Message', 'text tag')
-messages = []
-
-@app.route("/", methods=['GET'])
-def index():
-
-    return render_template('index.html')
-
-@app.route('/add_message')
-def add_message():
-    import myTestFile
-    # return f"SUMMARY {myTestFile.runZTool()}"
-    return render_template('summary.html', report=myTestFile.runZTool())
-
+while True:
+    schedule.run_pending()
+    time.sleep(1)
