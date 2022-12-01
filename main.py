@@ -10,12 +10,12 @@ from dotenv import load_dotenv
 import pytz
 
 load_dotenv()
+
 projectId = 13781
 logging.basicConfig(filename="main.log", level=logging.DEBUG, filemode="w", format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("main")
 
-lastRunningStatus = 0
-lastRunningDate = datetime.datetime.now(pytz.timezone('Asia/Yekaterinburg'))
+
 report = []
 
 # Вытягиваем из переменных среды логин и пароль, превращаем их в Base64 строку
@@ -44,22 +44,24 @@ def sendRESTRequest(reqtype, url_, headers_, body_=""):
             res = f"Неподдерживаемый тип запроса {reqtype}"
             print(res)
             log.error(res)
-            sys.exit(1)
+            return
     except requests.exceptions.RequestException as e:
         print("HTTP_Error: ", e)
         log.exception(f"HTTP_Error:{e}")
-        sys.exit(1)
+        return
     print(f"RESPONSE: STATUS_CODE {res.status_code}")
     if res.status_code == 200:
         log.info(f"RESPONSE: STATUS_CODE {res.status_code}")
     else:
         log.error(f"RESPONSE: STATUS_CODE {res.status_code}")
-        sys.exit(1)
+        return
     log.debug(f"RESPONCE_TEXT: {res.text}")
     return res
 
 
 def runZTool():
+    lastRunningStatus = 0  # 0 == Все хорошо, 1 == Ошибка
+    lastRunningDate = datetime.datetime.now(pytz.timezone('Asia/Yekaterinburg'))
     # Отправляем get запрос для получения всех циклов проекта
     url = f"https://jira.blogic.ru/rest/zapi/latest/cycle?projectId={projectId}&versionId=&id=&offset=&issueId=&expand="
     cyclesByProject = sendRESTRequest("GET", url, headers)
@@ -84,7 +86,8 @@ def runZTool():
     except:
         print(f"JSON_DECODE_ERROR:")
         log.exception(f"JSON_DECODE_ERROR:")
-        sys.exit(1)
+        lastRunningStatus = 1
+        return lastRunningStatus
     print(f"JSON_IS_DECODED_SUCCESSFUL, [cycle,version]:{summaryCyclesList}")
     log.info(f"JSON_IS_DECODED_SUCCESSFUL, [cycle,version]:{summaryCyclesList}")
 
@@ -118,12 +121,17 @@ def runZTool():
             except:
                 print(f"JSON_DECODE_ERROR:")
                 log.exception(f"JSON_DECODE_ERROR:")
-                sys.exit(1)
+                lastRunningStatus = 1
+                return lastRunningStatus
 
             # У каждого теста (выполнения) взяли номер и запрашиваем все его выполнения в рамках данной версии
             url = f"https://jira.blogic.ru/rest/zapi/latest/execution?issueId={issueId}&projectId=&versionId={versionId}&offset=&action=&sorter=&expand=&limit=&folderId=&limit=1000&cycleId="
             executionsByIssueId = sendRESTRequest("GET", url, headers)
-            executionsDict = executionsByIssueId.json().get('executions')
+            if executionsByIssueId:
+                executionsDict = executionsByIssueId.json().get('executions')
+            else:
+                lastRunningStatus = 1
+                return lastRunningStatus
 
             report.append(f"{nt + 1}. У теста {issueKey} найдено {len(executionsDict) - 1} выполнений в этой версии")
 
@@ -150,7 +158,8 @@ def runZTool():
                 except:
                     print(f"JSON_DECODE_ERROR:")
                     log.exception(f"JSON_DECODE_ERROR:")
-                    sys.exit(1)
+                    lastRunningStatus = 1
+                    return lastRunningStatus
             print(
                 f"JSON_IS_DECODED_SUCCESSFUL, [executionId, issueId,executionStatus,createdOn,uTime]:{executionsList}")
             log.info(
