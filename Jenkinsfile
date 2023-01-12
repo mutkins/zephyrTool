@@ -1,14 +1,9 @@
 pipeline {
     agent any
     stages {
-        stage('version'){
+       stage('runZtool'){
             steps {
-                bat 'python --version'
-                   }
-        }
-        stage('main'){
-            steps {
-                bat 'python start.py'
+                bat 'python jenkinsStart.py'
                    }
         }
     }
