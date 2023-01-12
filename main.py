@@ -91,7 +91,7 @@ def runZTool():
     print(f"JSON_IS_DECODED_SUCCESSFUL, [cycle,version]:{summaryCyclesList}")
     log.info(f"JSON_IS_DECODED_SUCCESSFUL, [cycle,version]:{summaryCyclesList}")
 
-    report.append(f"Найдено {len(summaryCyclesList)} циклов с именем SUMMARY [cycleId,versionId, versionName]: {summaryCyclesList}\n")
+    report.append(f"Найдено {len(summaryCyclesList)} циклов с именем SUMMARY [cycleId,versionId, versionName]: {summaryCyclesList}")
 
     # Теперь у нас есть список циклов SUMMARY, перебираем циклы по этому списку, nc - number of cycle
     nc = 0
