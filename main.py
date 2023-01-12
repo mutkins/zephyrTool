@@ -44,17 +44,17 @@ def sendRESTRequest(reqtype, url_, headers_, body_=""):
             res = f"Неподдерживаемый тип запроса {reqtype}"
             print(res)
             log.error(res)
-            return
+            sys.exit(1)
     except requests.exceptions.RequestException as e:
         print("HTTP_Error: ", e)
         log.exception(f"HTTP_Error:{e}")
-        return
+        sys.exit(1)
     print(f"RESPONSE: STATUS_CODE {res.status_code}")
     if res.status_code == 200:
         log.info(f"RESPONSE: STATUS_CODE {res.status_code}")
     else:
         log.error(f"RESPONSE: STATUS_CODE {res.status_code}")
-        return
+        sys.exit(1)
     log.debug(f"RESPONCE_TEXT: {res.text}")
     return res
 
@@ -87,7 +87,7 @@ def runZTool():
         print(f"JSON_DECODE_ERROR:")
         log.exception(f"JSON_DECODE_ERROR:")
         lastRunningStatus = 1
-        return lastRunningStatus
+        sys.exit(1)
     print(f"JSON_IS_DECODED_SUCCESSFUL, [cycle,version]:{summaryCyclesList}")
     log.info(f"JSON_IS_DECODED_SUCCESSFUL, [cycle,version]:{summaryCyclesList}")
 
@@ -122,7 +122,7 @@ def runZTool():
                 print(f"JSON_DECODE_ERROR:")
                 log.exception(f"JSON_DECODE_ERROR:")
                 lastRunningStatus = 1
-                return lastRunningStatus
+                sys.exit(1)
 
             # У каждого теста (выполнения) взяли номер и запрашиваем все его выполнения в рамках данной версии
             url = f"https://jira.blogic.ru/rest/zapi/latest/execution?issueId={issueId}&projectId=&versionId={versionId}&offset=&action=&sorter=&expand=&limit=&folderId=&limit=1000&cycleId="
@@ -131,7 +131,7 @@ def runZTool():
                 executionsDict = executionsByIssueId.json().get('executions')
             else:
                 lastRunningStatus = 1
-                return lastRunningStatus
+                sys.exit(1)
 
             report.append(f"{nt + 1}. У теста {issueKey} найдено {len(executionsDict) - 1} выполнений в этой версии")
 
@@ -159,7 +159,7 @@ def runZTool():
                     print(f"JSON_DECODE_ERROR:")
                     log.exception(f"JSON_DECODE_ERROR:")
                     lastRunningStatus = 1
-                    return lastRunningStatus
+                    sys.exit(1)
             print(
                 f"JSON_IS_DECODED_SUCCESSFUL, [executionId, issueId,executionStatus,createdOn,uTime]:{executionsList}")
             log.info(
