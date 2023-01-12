@@ -6,7 +6,7 @@ pipeline {
                 bat 'python3 --version'
                    }
         }
-        stage('version'){
+        stage('main'){
             steps {
                 bat 'python3 main.py'
                    }
