@@ -186,6 +186,7 @@ def runZTool():
             nt += 1
     log.info(f"REPORT: {report}")
     lastRunningDate = datetime.datetime.now(pytz.timezone('Asia/Yekaterinburg'))
+    print(report)
 
 
 
