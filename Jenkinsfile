@@ -6,6 +6,6 @@ pipeline {
                 sh 'python3 --version'
                    }
         }
-        }
+
     }
 }
