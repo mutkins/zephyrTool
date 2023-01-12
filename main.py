@@ -19,7 +19,7 @@ log = logging.getLogger("main")
 report = []
 
 # Вытягиваем из переменных среды логин и пароль, превращаем их в Base64 строку
-usernameAndPassString = f"{os.environ.get('USER')}:{os.environ.get('PASSWORD')}"
+usernameAndPassString = f"{os.environ.get('JIRA_USR')}:{os.environ.get('JIRA_PSW')}"
 usernameAndPassByte = usernameAndPassString.encode("UTF-8")
 usernameAndPassByteBase64 = base64.b64encode(usernameAndPassByte)
 usernameAndPassStringBase64 = usernameAndPassByteBase64.decode("UTF-8")
