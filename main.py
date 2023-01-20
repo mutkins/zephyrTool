@@ -26,6 +26,7 @@ usernameAndPassStringBase64 = usernameAndPassByteBase64.decode("UTF-8")
 
 print(os.environ.get('JIRA_USR'))
 print(os.environ.get('JIRA_PSW'))
+print(os.environ.get('TOKEN'))
 headers = {
     "Content-Type": "application/json;charset='utf-8'",
     "Authorization": f"Basic {usernameAndPassStringBase64}"
