@@ -8,14 +8,14 @@ pipeline {
     stages {
        stage('runZtool'){
             steps {
-                sh 'python jenkinsStart.py'
+                sh 'python3 jenkinsStart.py'
                    }
         }
     }
     post {
         failure {
         sh  ("""
-            curl -s -X POST https://api.telegram.org/bot${TOKEN}/sendMessage -d chat_id=${CHAT_ID} -d parse_mode=markdown -d text="*${env.JOB_NAME}* FAILED ${env.BUILD_URL} ${JIRA_USR}"
+            curl -s -X POST https://api.telegram.org/bot${TOKEN}/sendMessage -d chat_id=${CHAT_ID} -d parse_mode=markdown -d text="*${env.JOB_NAME}* FAILED ${env.BUILD_URL}"
         """)
         }
         aborted {
