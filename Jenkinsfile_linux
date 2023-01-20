@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-                JIRA = credentials('6c0d6ec2-adb4-4f01-87a7-ed531447fa0d')
+                JIRA = credentials('JIRA')
                 TOKEN = credentials('botID')
                 CHAT_ID = credentials('chatID')
             }
